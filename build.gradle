@@ -14,7 +14,14 @@ repositories {
 dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.12'
     compile files('libs/openbabel.jar')
+    compile files('libs/cdk-1.4.15.jar')
 }
 
-mainClassName = 'Main'
+ext {
+    javaMainClass = "Main"
+}
+
+application {
+    mainClassName = javaMainClass
+}
 

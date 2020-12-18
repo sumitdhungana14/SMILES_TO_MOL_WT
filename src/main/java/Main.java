@@ -1,39 +1,44 @@
 import org.openbabel.*;
+import org.openscience.cdk.exception.CDKException;
+import org.openscience.cdk.exception.InvalidSmilesException;
+import org.openscience.cdk.interfaces.IAtomContainer;
+import org.openscience.cdk.io.SDFWriter;
+import org.openscience.cdk.silent.SilentChemObjectBuilder;
+import org.openscience.cdk.smiles.SmilesParser;
+
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 
 public class Main {
 
    public static void main(String[] args) {
-       // Initialise
-       System.loadLibrary("openbabel_java");
+        try {
+            SmilesParser sp = new SmilesParser(SilentChemObjectBuilder.getInstance());
+            IAtomContainer m = sp.parseSmiles("C(Cl)(=O)CCC(=O)Cl");
 
-      //  // Read molecule from SMILES string
-       OBConversion conv = new OBConversion();
-       OBMol mol = new OBMol();
-       conv.SetInFormat("smi");
-       conv.ReadString(mol, "C(Cl)(=O)CCC(=O)Cl");
+            try {
+                File sdfFile = new File("sdfFile.sdf");
+                sdfFile.createNewFile();
 
-       // Print out some general information
-       conv.SetOutFormat("can");
-       System.out.print("Canonical SMILES: " +
-         conv.WriteString(mol));
-       System.out.println("The molecular weight is "
-         + mol.GetMolWt());
-       for(OBAtom atom : new OBMolAtomIter(mol))
-           System.out.println("Atom " + atom.GetIdx()
-             + ": atomic number = " + atom.GetAtomicNum()
-             + ", hybridisation = " + atom.GetHyb());
+                FileWriter sdfFileWriter = new FileWriter("sdfFile.sdf");
+                SDFWriter sdfWriter = new SDFWriter(sdfFileWriter);
+                try {
+                    sdfWriter.write(m);
+                } catch (CDKException e) {
+                    System.out.println(e.getMessage());
+                } finally {
+                    sdfWriter.close();
+                    sdfFileWriter.close();
+                }
 
-       // What are the indices of the carbon atoms
-       // of the acid chloride groups?
-       OBSmartsPattern acidpattern = new OBSmartsPattern();
-       acidpattern.Init("C(=O)Cl");
-       acidpattern.Match(mol);
+            } catch (IOException e) {
 
-       vectorvInt matches = acidpattern.GetUMapList();
-       System.out.println("There are " + matches.size() +
-                          " acid chloride groups");
-       System.out.print("Their C atoms have indices: ");
-       for(int i=0; i<matches.size(); i++)
-           System.out.print(matches.get(i).get(0) + " ");
+            }
+
+            System.out.println("Valid Smiles.");
+        } catch (InvalidSmilesException e) {
+            System.out.println("Invalid Smiles Exception.");
+        }
    }
 }
